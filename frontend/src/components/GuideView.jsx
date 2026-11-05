@@ -7,11 +7,36 @@ export default function GuideView({ guide }) {
   const [copied, setCopied] = useState(false);
   const done = Object.values(checked).filter(Boolean).length;
   const steps = guide.steps || [];
-  async function copyLink() {
-    await navigator.clipboard.writeText(window.location.href);
+  
+async function copyLink() {
+  const url = window.location.href;
+
+  try {
+    if (navigator.clipboard && window.isSecureContext) {
+      await navigator.clipboard.writeText(url);
+    } else {
+      const textArea = document.createElement("textarea");
+      textArea.value = url;
+      textArea.style.position = "fixed";
+      textArea.style.left = "-9999px";
+      document.body.appendChild(textArea);
+      textArea.select();
+
+      const success = document.execCommand("copy");
+      document.body.removeChild(textArea);
+
+      if (!success) {
+        throw new Error("Copy failed");
+      }
+    }
+
     setCopied(true);
-    setTimeout(() => setCopied(false), 1800);
+    setTimeout(() => setCopied(false), 2000);
+  } catch (error) {
+    window.prompt("Copy this guide link:", url);
   }
+}
+
   return (
     <div className="mx-auto max-w-5xl px-5 pb-20 pt-10">
       <div className="mb-8 flex items-center justify-between">

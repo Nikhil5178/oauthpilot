@@ -19,11 +19,12 @@ ENV_PATH = Path(__file__).resolve().parent / ".env"
 load_dotenv(dotenv_path=ENV_PATH, override=True)
 
 print("ENV FILE FOUND:", ENV_PATH.exists())
-print("OPENAI API KEY LOADED:", bool(os.getenv("OPENAI_API_KEY")))
+print("GEMINI API KEY LOADED:", bool(os.getenv("GEMINI_API_KEY")))
 
 DB_PATH = os.getenv("DATABASE_PATH", "./oauthpilot.db")
 
 app = FastAPI(title="OAuthPilot API", version="1.0.0")
+
 
 origins = [
     x.strip()
@@ -33,13 +34,16 @@ origins = [
     if x.strip()
 ]
 
+print("CORS ORIGINS LOADED:", origins)
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=origins or ["http://localhost:5173"],
+    allow_origins=origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
 
 SEED_GUIDES: list[dict[str, Any]] = [
     {
