@@ -3,10 +3,40 @@ import { Link } from "react-router-dom";
 import { useState } from "react";
 
 export default function GuideView({ guide }) {
-  const [checked, setChecked] = useState({});
-  const [copied, setCopied] = useState(false);
-  const done = Object.values(checked).filter(Boolean).length;
   const steps = guide.steps || [];
+
+// Separate saved progress for each guide
+const storageKey = `oauthpilot-progress-${guide.id || guide.slug || guide.name || guide.website}`;
+
+const [checked, setChecked] = useState(() => {
+  try {
+    return JSON.parse(localStorage.getItem(storageKey) || "{}");
+  } catch {
+    return {};
+  }
+});
+
+const [copied, setCopied] = useState(false);
+
+const done = Object.values(checked).filter(Boolean).length;
+
+// Save checklist progress immediately
+function toggleStep(index) {
+  setChecked(current => {
+    const updated = {
+      ...current,
+      [index]: !current[index]
+    };
+
+    try {
+      localStorage.setItem(storageKey, JSON.stringify(updated));
+    } catch (error) {
+      console.error("Could not save checklist progress:", error);
+    }
+
+    return updated;
+  });
+}
   
 async function copyLink() {
   const url = window.location.href;
@@ -61,7 +91,22 @@ async function copyLink() {
           <section className="rounded-2xl border border-white/10 bg-white/[0.025] p-6">
             <div className="flex items-center justify-between"><h2 className="text-xl font-semibold">Setup checklist</h2><span className="text-xs text-slate-500">{done}/{steps.length} completed</span></div>
             <div className="mt-3 h-1.5 overflow-hidden rounded-full bg-white/10"><div className="h-full rounded-full bg-violet-400 transition-all" style={{width: `${steps.length ? done / steps.length * 100 : 0}%`}}/></div>
-            <div className="mt-5 space-y-4">{steps.map((step, i) => <button key={i} onClick={() => setChecked(s => ({...s, [i]: !s[i]}))} className="flex w-full items-start gap-3 text-left"><span className={`mt-0.5 ${checked[i] ? "text-emerald-400" : "text-slate-600"}`}>{checked[i] ? <CheckCircle2 size={19}/> : <Circle size={19}/>}</span><span className={`text-sm leading-6 ${checked[i] ? "text-slate-500 line-through" : "text-slate-300"}`}>{step}</span></button>)}</div>
+            <div className="mt-5 space-y-4">
+  {steps.map((step, i) => (
+    <button
+      key={i}
+      onClick={() => toggleStep(i)}
+      className="flex w-full items-start gap-3 text-left"
+    >
+      <span className={`mt-0.5 ${checked[i] ? "text-emerald-400" : "text-slate-600"}`}>
+        {checked[i] ? <CheckCircle2 size={19} /> : <Circle size={19} />}
+      </span>
+      <span className={`text-sm leading-6 ${checked[i] ? "text-slate-500 line-through" : "text-slate-300"}`}>
+        {step}
+      </span>
+    </button>
+  ))}
+</div>
           </section>
 
           <section className="rounded-2xl border border-white/10 bg-white/[0.025] p-6">
