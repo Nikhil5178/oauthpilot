@@ -19,16 +19,56 @@ function Home() {
   useEffect(() => { getApps().then(setApps).catch(e => setError(e.message)); }, []);
   const filtered = useMemo(() => apps.filter(a => `${a.name} ${a.category}`.toLowerCase().includes(query.toLowerCase())), [apps, query]);
 
-  async function submit(e) {
-    e.preventDefault();
-    if (!query.trim()) return;
-    setLoading(true); setError("");
-    try {
-      const guide = await researchApp(query.trim());
-      navigate(`/guide/${guide.id}`, { state: { guide } });
-    } catch (e) { setError(e.message); }
-    finally { setLoading(false); }
+  
+
+async function submit(e) {
+  e.preventDefault();
+
+  const search = query.trim().toLowerCase();
+  if (!search) return;
+
+  setError("");
+
+  const normalize = (value = "") =>
+    value
+      .toLowerCase()
+      .trim()
+      .replace(/^https?:\/\//, "")
+      .replace(/^www\./, "")
+      .replace(/\/$/, "");
+
+  const match = apps.find((app) => {
+    const name = normalize(app.name);
+    const website = normalize(app.website);
+    const domain = website.split("/")[0];
+    const searchValue = normalize(search);
+
+    return (
+      name === searchValue ||
+      name.startsWith(searchValue) ||
+      domain === searchValue ||
+      domain.startsWith(searchValue)
+    );
+  });
+
+  if (match) {
+    navigate(`/guide/${match.id}`);
+    return;
   }
+
+  setLoading(true);
+
+  try {
+    const guide = await researchApp(query.trim());
+    navigate(`/guide/${guide.id}`, { state: { guide } });
+  } catch (err) {
+    setError(err.message);
+  } finally {
+    setLoading(false);
+  }
+}
+
+
 
   return <main>
     <section className="relative overflow-hidden border-b border-white/10">
@@ -42,7 +82,9 @@ function Home() {
           <button disabled={loading || !query.trim()} className="flex items-center justify-center gap-2 rounded-xl bg-violet-500 px-5 py-3 text-sm font-semibold text-white transition hover:bg-violet-400 disabled:cursor-not-allowed disabled:opacity-50">{loading ? <><LoaderCircle size={16} className="animate-spin"/> Researching</> : <><Bot size={16}/> Research an app <ArrowRight size={15}/></>}</button>
         </form>
         {error && <div className="mt-3 flex max-w-2xl items-start gap-2 rounded-xl border border-red-400/20 bg-red-400/5 p-3 text-sm text-red-200"><AlertCircle size={16} className="mt-0.5 shrink-0"/>{error}</div>}
-        <p className="mt-3 text-xs text-slate-600">Try an app not in the library. Live research requires an OpenAI API key on the backend.</p>
+        <p className="mt-3 text-xs text-slate-600">
+        Search built-in OAuth guides instantly. Unknown apps use live AI research when available.
+      </p>
         <div className="mt-12 flex flex-wrap gap-8 text-xs text-slate-500"><span className="flex items-center gap-2"><ShieldCheck size={15} className="text-emerald-300"/> Evidence-backed guidance</span><span className="flex items-center gap-2"><Zap size={15} className="text-amber-300"/> Effort vs. approval clarity</span><span className="flex items-center gap-2"><Bot size={15} className="text-violet-300"/> Live agent research</span></div>
       </div>
     </section>
