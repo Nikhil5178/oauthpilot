@@ -4,10 +4,7 @@ OAuthPilot is an AI-powered OAuth setup assistant that helps developers understa
 
 It provides a curated library of OAuth integration guides and an AI-powered research feature for applications that are not already available in the library.
 
-## Live Demo
-
-- Frontend: https://oauthpilot-git-main-nikhios-projects.vercel.app/
-- Backend API: https://oauthpilot.onrender.com
+- Live Demo:https://oauthpilot-git-main-nikhios-projects.vercel.app/
 - API Documentation: https://oauthpilot.onrender.com/docs
 - GitHub Repository:https://github.com/Nikhil5178/oauthpilot
 
